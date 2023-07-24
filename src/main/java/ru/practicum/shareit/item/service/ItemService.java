@@ -11,6 +11,7 @@ import ru.practicum.shareit.item.storage.ItemStorage;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.storage.UserStorage;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,17 +37,17 @@ public class ItemService {
 
     public ItemDto update(ItemDto itemDto, long itemId, long userId) {
         var updatedItem = checkIfExists(itemStorage.findById(itemId));
-        if (updatedItem.getOwner() != null && updatedItem.getOwner().getId() != userId) {
+        if (Optional.ofNullable(updatedItem.getOwner()).isPresent() && updatedItem.getOwner().getId() != userId) {
             throw new UserOwnershipException("User with id=" + userId +
                     " is not the owner of the item with id=" + itemId);
         }
-        if (itemDto.getName() != null) {
+        if (Optional.ofNullable(itemDto.getName()).isPresent()) {
             updatedItem.setName(itemDto.getName());
         }
-        if (itemDto.getDescription() != null) {
+        if (Optional.ofNullable(itemDto.getDescription()).isPresent()) {
             updatedItem.setDescription(itemDto.getDescription());
         }
-        if (itemDto.getAvailable() != null) {
+        if (Optional.ofNullable(itemDto.getAvailable()).isPresent()) {
             updatedItem.setAvailable(itemDto.getAvailable());
         }
         updatedItem.setOwner(UserMapper.toUser(checkUserExist(userId)));
@@ -65,9 +66,11 @@ public class ItemService {
 
     public List<ItemDto> searchByText(String text) {
         return text.isEmpty() ? Collections.emptyList() :
-                findAllItemDtoByFilter(item -> item.getName().toLowerCase().contains(text.toLowerCase())
-                        || item.getDescription().toLowerCase().contains(text.toLowerCase())
-                        && item.getAvailable());
+                findAllItemDtoByFilter(
+                        item -> (StringUtils.containsIgnoreCase(item.getName(), text)
+                                || StringUtils.containsIgnoreCase(item.getDescription(), text)
+                                && item.getAvailable())
+                );
     }
 
     private List<ItemDto> findAllItemDtoByFilter(Predicate<Item> filter) {
