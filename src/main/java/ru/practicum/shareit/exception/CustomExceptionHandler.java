@@ -13,31 +13,33 @@ import java.util.Arrays;
 @Slf4j
 public class CustomExceptionHandler {
 
-    @ExceptionHandler
+    @ExceptionHandler({AlreadyExistException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseError conflictHandler(AlreadyExistException exception) {
-        log.error(Arrays.toString(exception.getStackTrace()));
+    public ResponseError conflictHandle(Exception exception) {
+        log.error(exception.getMessage());
         return new ResponseError(exception.getMessage(), HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler({NotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseError notFountErrorHandler(NotFoundException exception) {
-        log.error(Arrays.toString(exception.getStackTrace()));
+    public ResponseError notFoundHandle(Exception exception) {
+        log.error(exception.getMessage());
         return new ResponseError(exception.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler({UserOwnershipException.class})
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseError notUseOwnershipHandler(UserOwnershipException exception) {
-        log.error(Arrays.toString(exception.getStackTrace()));
+    public ResponseError notUserOwnership(Exception exception) {
+        log.error(exception.getMessage());
         return new ResponseError(exception.getMessage(), HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler({NotAvailableException.class,
+            BadRequestException.class,
+            MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseError badRequestHandler(MethodArgumentNotValidException exception) {
-        log.error(Arrays.toString(exception.getStackTrace()));
+    public ResponseError badRequestHandle(Exception exception) {
+        log.error(exception.getMessage());
         return new ResponseError(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

@@ -1,0 +1,118 @@
+package ru.practicum.shareit.booking.service;
+
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingMapper;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingState;
+import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.NotAvailableException;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.utils.EntityUtils;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static ru.practicum.shareit.utils.EntityUtils.stateBy;
+
+@Service
+@RequiredArgsConstructor
+public class BookingService {
+
+    private final BookingRepository bookingRepository;
+    private final EntityUtils entityUtils;
+
+    @Transactional
+    public BookingDto create(BookingDto bookingDto, long userId) {
+        var user = entityUtils.getUserIfExists(userId);
+        var item = entityUtils.getItemIfExists(bookingDto.getItemId());
+
+        if (Boolean.FALSE.equals(item.getAvailable())) {
+            throw new NotAvailableException("Вещь с ID = " + item.getId() + " не доступна для бронирования");
+        }
+
+        if (bookingDto.getStart() == null || bookingDto.getEnd() == null) {
+            throw new BadRequestException("Не указана дата бронирования");
+        }
+
+        if (bookingDto.getStart().isAfter(bookingDto.getEnd()) || bookingDto.getStart().equals(bookingDto.getEnd())) {
+            throw new BadRequestException("Дата начала бронирования вещи позже или равно дате окончания заказа");
+        }
+
+        if (userId == item.getOwner().getId()) {
+            throw new NotFoundException("Владелец не может забронировать свою собственную вещь");
+        }
+
+        return BookingMapper.toBookingDto(bookingRepository.save(BookingMapper.toBooking(bookingDto, user, item)));
+    }
+
+    @Transactional
+    public BookingDto updateStatus(long userId, long bookingId, Boolean isApproved) {
+        var booking = entityUtils.getBookingIfExists(bookingId);
+        var item = entityUtils.getItemIfExists(booking.getItem().getId());
+
+        if (booking.getStatus() == BookingStatus.APPROVED && Boolean.TRUE.equals(isApproved)) {
+            throw new BadRequestException("Бронирование уже подтверждено владельцем");
+        }
+
+        if (item.getOwner().getId() == userId) {
+            booking.setStatus(Boolean.TRUE.equals(isApproved) ? BookingStatus.APPROVED : BookingStatus.REJECTED);
+        } else {
+            throw new NotFoundException("Пользователь с ID = " + userId + " не является владельщем вещи с ID" + item.getId());
+        }
+
+        return BookingMapper.toBookingDto(bookingRepository.save(booking));
+    }
+
+    @Transactional(readOnly = true)
+    public BookingDto findById(long bookingId, long userId) {
+        var booking = entityUtils.getBookingIfExists(bookingId);
+
+        if (!Objects.equals(booking.getBooker().getId(), userId) && !Objects.equals(booking.getItem().getOwner().getId(), userId)) {
+            throw new NotFoundException("Букинг с ID = " + bookingId + " не доступен для просмотра");
+        }
+
+        return BookingMapper.toBookingDto(booking);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookingDto> findByBookerAndState(long userId, String state) {
+        entityUtils.getUserIfExists(userId);
+        return bookingRepository.findAllByBookerId(userId).stream()
+                .filter(stateBy(parseState(state)))
+                .sorted(Comparator.comparing(Booking::getStart).reversed())
+                .map(BookingMapper::toBookingDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookingDto> findByOwnerAndState(long userId, String state) {
+        entityUtils.getUserIfExists(userId);
+        return bookingRepository.findAllByItemOwnerId(userId).stream()
+                .filter(stateBy(parseState(state)))
+                .sorted(Comparator.comparing(Booking::getStart).reversed())
+                .map(BookingMapper::toBookingDto)
+                .collect(Collectors.toList());
+    }
+
+    private static BookingState parseState(String state) {
+        BookingState bookingState;
+        if (StringUtils.isBlank(state)) {
+            bookingState = BookingState.ALL;
+        } else {
+            try {
+                bookingState = BookingState.valueOf(state);
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("Unknown state: " + state);
+            }
+        }
+        return bookingState;
+    }
+}

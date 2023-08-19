@@ -9,11 +9,12 @@ import java.time.LocalDateTime;
 
 @Getter
 @RequiredArgsConstructor
-class ResponseError {
+public class ResponseError {
 
-    private final String message;
+    private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+
+    private final String error;
     private final HttpStatus status;
-    public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
     private final LocalDateTime time = LocalDateTime.now();
 }
