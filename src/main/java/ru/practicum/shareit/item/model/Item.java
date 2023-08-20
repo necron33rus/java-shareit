@@ -10,7 +10,6 @@ import ru.practicum.shareit.user.model.User;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Objects;
 
 @Getter
@@ -28,8 +27,7 @@ public class Item {
     private Long id;
 
     @NotBlank
-    @Size(max = 255)
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 255)
     private String name;
 
     @NotBlank

@@ -13,10 +13,13 @@ import java.time.LocalDateTime;
 @Builder
 @Data
 public class BookingDto {
+
     private Long id;
 
-    @Future
+    @Future(message = "Дата начала не может быть в прошлом")
     private LocalDateTime start;
+
+    @Future(message = "Дата окончания не может быть в прошлом")
 
     private LocalDateTime end;
 
@@ -29,5 +32,4 @@ public class BookingDto {
     private User booker;
 
     private BookingState state;
-
 }

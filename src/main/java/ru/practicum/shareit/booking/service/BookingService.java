@@ -1,7 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -34,7 +34,7 @@ public class BookingService {
         var user = entityUtils.getUserIfExists(userId);
         var item = entityUtils.getItemIfExists(bookingDto.getItemId());
 
-        if (Boolean.FALSE.equals(item.getAvailable())) {
+        if (BooleanUtils.isFalse(item.getAvailable())) {
             throw new NotAvailableException("Вещь с ID = " + item.getId() + " не доступна для бронирования");
         }
 
@@ -63,7 +63,7 @@ public class BookingService {
         }
 
         if (item.getOwner().getId() == userId) {
-            booking.setStatus(Boolean.TRUE.equals(isApproved) ? BookingStatus.APPROVED : BookingStatus.REJECTED);
+            booking.setStatus(BooleanUtils.isTrue(isApproved) ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         } else {
             throw new NotFoundException("Пользователь с ID = " + userId + " не является владельщем вещи с ID" + item.getId());
         }
@@ -86,7 +86,7 @@ public class BookingService {
     public List<BookingDto> findByBookerAndState(long userId, String state) {
         entityUtils.getUserIfExists(userId);
         return bookingRepository.findAllByBookerId(userId).stream()
-                .filter(stateBy(parseState(state)))
+                .filter(stateBy(BookingState.parseState(state)))
                 .sorted(Comparator.comparing(Booking::getStart).reversed())
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toList());
@@ -96,23 +96,9 @@ public class BookingService {
     public List<BookingDto> findByOwnerAndState(long userId, String state) {
         entityUtils.getUserIfExists(userId);
         return bookingRepository.findAllByItemOwnerId(userId).stream()
-                .filter(stateBy(parseState(state)))
+                .filter(stateBy(BookingState.parseState(state)))
                 .sorted(Comparator.comparing(Booking::getStart).reversed())
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toList());
-    }
-
-    private static BookingState parseState(String state) {
-        BookingState bookingState;
-        if (StringUtils.isBlank(state)) {
-            bookingState = BookingState.ALL;
-        } else {
-            try {
-                bookingState = BookingState.valueOf(state);
-            } catch (IllegalArgumentException e) {
-                throw new BadRequestException("Unknown state: " + state);
-            }
-        }
-        return bookingState;
     }
 }

@@ -136,7 +136,7 @@ public class ItemService {
                 .orElse(null);
 
         var nextBooking = bookings.stream()
-                .filter(b -> b.getStatus().equals(BookingStatus.APPROVED))
+                .filter(b -> b.getStatus() == BookingStatus.APPROVED)
                 .filter(b -> b.getStart().isAfter(LocalDateTime.now()))
                 .min(Comparator.comparing(Booking::getStart))
                 .orElse(null);
