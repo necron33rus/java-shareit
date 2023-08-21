@@ -1,32 +1,34 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.AlreadyExistException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.utils.EntityUtils;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserService {
 
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
+    private final EntityUtils entityUtils;
 
-    public UserDto create(UserDto userDto) {
-        if (findByEmail(userDto.getEmail()).isPresent()) {
-            throw new AlreadyExistException("UserService: user with email '" + userDto.getEmail() + "' already exist");
-        }
-        return UserMapper.toUserDto(userStorage.create(UserMapper.toUser(userDto)));
+    @Transactional
+    public UserDto create(@NotNull UserDto userDto) {
+        return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
     }
 
-    public UserDto update(UserDto userDto, long userId) {
-        var updatedUser = findById(userId);
+    public UserDto update(@NotNull UserDto userDto, long userId) {
+        var updatedUser = entityUtils.getUserIfExists(userId);
         if (userDto.getName() != null) {
             updatedUser.setName(userDto.getName());
         }
@@ -34,33 +36,31 @@ public class UserService {
             checkForDuplicateEmail(userDto.getEmail(), userId);
             updatedUser.setEmail(userDto.getEmail());
         }
-        return UserMapper.toUserDto(userStorage.update(UserMapper.toUser(updatedUser)));
+        return UserMapper.toUserDto(userRepository.save(updatedUser));
     }
 
+    @Transactional
     public void deleteById(Long id) {
-        userStorage.deleteById(id);
+        userRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
     public UserDto findById(Long id) {
-        return Optional.ofNullable(userStorage.findById(id))
-                .map(UserMapper::toUserDto)
-                .orElseThrow(() -> new NotFoundException("UserService: user with id = " + id + "not found"));
+        return UserMapper.toUserDto(userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("UserService: user with id = " + id + "not found")));
     }
 
+    @Transactional(readOnly = true)
     public List<UserDto> findAll() {
-        return userStorage.findAll().stream()
+        return userRepository.findAll().stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
-    public Optional<UserDto> findByEmail(String email) {
-        return findAll().stream()
-                .filter(user -> email.equals(user.getEmail()))
-                .findFirst();
-    }
-
     private void checkForDuplicateEmail(String email, long userId) {
-        var otherUser = findByEmail(email).orElse(null);
+        var otherUser = userRepository.findByEmail(email)
+                .map(UserMapper::toUserDto)
+                .orElse(null);
         if (otherUser != null && otherUser.getEmail().equals(email) && otherUser.getId() != userId) {
             throw new AlreadyExistException("User with email=" + email + " already exists");
         }

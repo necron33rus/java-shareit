@@ -19,7 +19,7 @@ public class UserController {
 
     @PostMapping
     public UserDto create(@RequestBody @Valid UserDto userDto) {
-        log.info("UserController: POST method: create item {}", userDto);
+        log.info("UserController: POST method: create user {}", userDto);
         return userService.create(userDto);
     }
 

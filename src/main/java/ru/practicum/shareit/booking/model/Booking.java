@@ -1,49 +1,52 @@
-package ru.practicum.shareit.item.model;
+package ru.practicum.shareit.booking.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.proxy.HibernateProxy;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
 @AllArgsConstructor
+@RequiredArgsConstructor
 @Builder
 @Entity
-@Table(name = "items")
-public class Item {
+@Table(name = "bookings")
+public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Column(name = "name", nullable = false, length = 255)
-    private String name;
+    @Column(name = "date_start", nullable = false)
+    private LocalDateTime start;
 
-    @NotBlank
-    @Column(name = "description", nullable = false)
-    private String description;
+    @Column(name = "date_end", nullable = false)
+    private LocalDateTime end;
 
-    @Column(name = "available", nullable = false, columnDefinition = "boolean default true")
-    private Boolean available;
-
-    @JoinColumn(name = "owner_id", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
+    @JoinColumn(name = "item_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     @NotNull
-    @JsonIgnore
-    @ToString.Exclude
-    private User owner;
+    private Item item;
+
+    @ManyToOne
+    @JoinColumn(name = "booker_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @NotNull
+    private User booker;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 50)
+    private BookingStatus status;
 
     @Override
     public final boolean equals(Object o) {
@@ -52,8 +55,8 @@ public class Item {
         Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
-        Item item = (Item) o;
-        return getId() != null && Objects.equals(getId(), item.getId());
+        Booking booking = (Booking) o;
+        return getId() != null && Objects.equals(getId(), booking.getId());
     }
 
     @Override
