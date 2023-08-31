@@ -92,7 +92,7 @@ public class BookingService {
         int totalElements = bookingRepository.findAllByBookerId(userId).size();
         int totalPages = (int) Math.ceil((double) totalElements / size);
 
-        if(from >= totalPages) {
+        if (from >= totalPages) {
             from = totalPages - 1;
         }
 
@@ -113,7 +113,7 @@ public class BookingService {
         int totalElements = bookingRepository.findAllByItemOwnerId(userId).size();
         int totalPages = (int) Math.ceil((double) totalElements / size);
 
-        if(from >= totalPages) {
+        if (from >= totalPages) {
             from = totalPages - 1;
         }
 
