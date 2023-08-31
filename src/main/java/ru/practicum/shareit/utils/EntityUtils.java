@@ -10,6 +10,8 @@ import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -24,6 +26,7 @@ public class EntityUtils {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     public User getUserIfExists(long userId) {
         return userRepository.findById(userId).orElseThrow(
@@ -35,6 +38,11 @@ public class EntityUtils {
         return itemRepository.findById(itemId).orElseThrow(
                 () -> new NotFoundException("Item with id = " + itemId + " not found")
         );
+    }
+
+    public ItemRequest getItemRequestIfExists(long id) {
+        return itemRequestRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Request with id=" + id + " not exists"));
     }
 
     public Booking getBookingIfExists(long bookingId) {

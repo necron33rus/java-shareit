@@ -19,17 +19,17 @@ import java.util.List;
 public class ItemDto {
     private Long id;
 
-    @NotNull
-    @NotBlank(message = "название не указано")
+
+    @NotBlank(message = "Название не указано")
     private String name;
 
-    @NotBlank(message = "название не указано")
+    @NotBlank(message = "Описание не указано")
     private String description;
 
     @NotNull
     private Boolean available;
     private User owner;
-    private Long incomingRequest;
+    private Long requestId;
     private NearByBooking lastBooking;
     private NearByBooking nextBooking;
     private List<CommentDto> comments;

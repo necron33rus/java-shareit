@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -14,7 +16,6 @@ import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.utils.EntityUtils;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -65,7 +66,7 @@ public class BookingService {
         if (item.getOwner().getId() == userId) {
             booking.setStatus(BooleanUtils.isTrue(isApproved) ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         } else {
-            throw new NotFoundException("Пользователь с ID = " + userId + " не является владельщем вещи с ID" + item.getId());
+            throw new NotFoundException("Пользователь с ID = " + userId + " не является владельцем вещи с ID" + item.getId());
         }
 
         return BookingMapper.toBookingDto(bookingRepository.save(booking));
@@ -83,9 +84,20 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public List<BookingDto> findByBookerAndState(long userId, String state) {
+    public List<BookingDto> findByBookerAndState(long userId, String state, int from, int size) {
+        if (from < 0 || size <= 0) {
+            throw new BadRequestException("Указаны неверные параметры пагинации");
+        }
         entityUtils.getUserIfExists(userId);
-        return bookingRepository.findAllByBookerId(userId).stream()
+        int totalElements = bookingRepository.findAllByBookerId(userId).size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        if(from >= totalPages) {
+            from = totalPages - 1;
+        }
+
+        PageRequest pageRequest = PageRequest.of(from, size, Sort.by("start").descending());
+        return bookingRepository.findAllByBookerId(userId, pageRequest).stream()
                 .filter(stateBy(BookingState.parseState(state)))
                 .sorted(Comparator.comparing(Booking::getStart).reversed())
                 .map(BookingMapper::toBookingDto)
@@ -93,9 +105,20 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public List<BookingDto> findByOwnerAndState(long userId, String state) {
+    public List<BookingDto> findByOwnerAndState(long userId, String state, int from, int size) {
+        if (from < 0 || size <= 0) {
+            throw new BadRequestException("Указаны неверные параметры пагинации");
+        }
         entityUtils.getUserIfExists(userId);
-        return bookingRepository.findAllByItemOwnerId(userId).stream()
+        int totalElements = bookingRepository.findAllByItemOwnerId(userId).size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        if(from >= totalPages) {
+            from = totalPages - 1;
+        }
+
+        PageRequest pageRequest = PageRequest.of(from, size, Sort.by("start").descending());
+        return bookingRepository.findAllByItemOwnerId(userId, pageRequest).stream()
                 .filter(stateBy(BookingState.parseState(state)))
                 .sorted(Comparator.comparing(Booking::getStart).reversed())
                 .map(BookingMapper::toBookingDto)
