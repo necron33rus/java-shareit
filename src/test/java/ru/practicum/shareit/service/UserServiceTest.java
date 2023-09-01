@@ -143,4 +143,16 @@ class UserServiceTest {
         verify(userRepository, times(1)).findAll();
     }
 
+    @Test
+    void findById() {
+        var userOne = User.builder()
+                .id(1L)
+                .name("user1")
+                .email("ya@ya.com")
+                .build();
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(userOne));
+        var expected = List.of(userOne).size();
+        var actual = userRepository.findById(1L).stream().count();
+        assertEquals(expected, actual);
+    }
 }

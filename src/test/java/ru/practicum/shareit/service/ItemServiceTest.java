@@ -20,6 +20,7 @@ import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.utils.EntityUtils;
 
@@ -54,6 +55,19 @@ class ItemServiceTest {
         var itemDto = new ItemDto();
         var item = Item.builder().id(1L)
                 .owner(User.builder().id(1L).build())
+                .build();
+        when(itemRepository.save(any(Item.class))).thenReturn(item);
+        var createdItem = itemService.create(itemDto, item.getOwner().getId());
+        assertEquals(ItemMapper.toItem(createdItem, item.getOwner()), item);
+        verify(itemRepository, times(1)).save(any(Item.class));
+    }
+
+    @Test
+    void createItemWithStatus() {
+        var itemDto = new ItemDto();
+        var item = Item.builder().id(1L)
+                .owner(User.builder().id(1L).build())
+                .request(ItemRequest.builder().id(1L).build())
                 .build();
         when(itemRepository.save(any(Item.class))).thenReturn(item);
         var createdItem = itemService.create(itemDto, item.getOwner().getId());
