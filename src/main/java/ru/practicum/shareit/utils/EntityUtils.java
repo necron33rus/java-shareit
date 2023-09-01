@@ -43,7 +43,7 @@ public class EntityUtils {
 
     public ItemRequest getItemRequestIfExists(long id) {
         return itemRequestRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Request with id=" + id + " not exists"));
+                .orElseThrow(() -> new NotFoundException("Request with id = " + id + " not exists"));
     }
 
     public Booking getBookingIfExists(long bookingId) {

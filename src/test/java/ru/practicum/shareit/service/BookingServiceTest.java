@@ -20,7 +20,6 @@ import ru.practicum.shareit.utils.EntityUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
-//import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -76,6 +75,7 @@ class BookingServiceTest {
         assertEquals(BookingMapper.toBookingDto(booking), resultBookingDto);
         verify(bookingRepository, times(1)).save(any(Booking.class));
     }
+
 
     @Test
     void createWithStartNull() {
@@ -287,6 +287,41 @@ class BookingServiceTest {
         when(bookingRepository.findAllByBookerId(anyLong())).thenReturn(List.of(booking1, booking3, booking2));
         var expected = List.of(BookingMapper.toBookingDto(booking2), BookingMapper.toBookingDto(booking1)).toArray();
         var actual = bookingService.findByBookerAndState(1L, "PAST", 0, 100).toArray();
+        assertArrayEquals(expected, actual);
+        verify(entityUtils, times(1)).getUserIfExists(anyLong());
+        verify(bookingRepository, times(1)).findAllByBookerId(anyLong());
+    }
+
+    @Test
+    void findByBookerAndStateFuture() {
+        var item = Item.builder()
+                .id(1L)
+                .owner(User.builder().id(1L).build())
+                .build();
+        var booking1 = Booking.builder()
+                .booker(User.builder().id(1L).build())
+                .status(BookingStatus.APPROVED)
+                .item(item)
+                .start(LocalDateTime.of(2020, 1, 1, 1, 1))
+                .end(LocalDateTime.of(2020, 1, 2, 1, 1))
+                .build();
+        var booking2 = Booking.builder()
+                .booker(User.builder().id(1L).build())
+                .status(BookingStatus.APPROVED)
+                .item(item)
+                .start(LocalDateTime.of(2023, 12, 1, 1, 1))
+                .end(LocalDateTime.of(2023, 12, 2, 1, 1))
+                .build();
+        var booking3 = Booking.builder()
+                .booker(User.builder().id(1L).build())
+                .status(BookingStatus.APPROVED)
+                .item(item)
+                .start(LocalDateTime.of(2024, 1, 1, 1, 1))
+                .end(LocalDateTime.of(2024, 1, 2, 1, 1))
+                .build();
+        when(bookingRepository.findAllByBookerId(anyLong())).thenReturn(List.of(booking1, booking3, booking2));
+        var expected = List.of(BookingMapper.toBookingDto(booking3), BookingMapper.toBookingDto(booking2)).toArray();
+        var actual = bookingService.findByBookerAndState(1L, "FUTURE", 0, 100).toArray();
         assertArrayEquals(expected, actual);
         verify(entityUtils, times(1)).getUserIfExists(anyLong());
         verify(bookingRepository, times(1)).findAllByBookerId(anyLong());

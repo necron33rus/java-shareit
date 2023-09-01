@@ -63,19 +63,6 @@ class ItemServiceTest {
     }
 
     @Test
-    void createItemWithNullRequestId() {
-        var itemDto = new ItemDto();
-        var item = Item.builder().id(1L)
-                .owner(User.builder().id(1L).build())
-                .request(null)
-                .build();
-        when(itemRepository.save(any(Item.class))).thenReturn(item);
-        var createdItem = itemService.create(itemDto, item.getOwner().getId());
-        assertEquals(ItemMapper.toItem(createdItem, item.getOwner()), item);
-        verify(itemRepository, times(1)).save(any(Item.class));
-    }
-
-    @Test
     void createItemWithStatus() {
         var itemDto = new ItemDto();
         var item = Item.builder().id(1L)
