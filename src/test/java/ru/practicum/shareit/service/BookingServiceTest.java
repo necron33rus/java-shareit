@@ -19,6 +19,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.utils.EntityUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 //import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -255,7 +256,7 @@ class BookingServiceTest {
         assertEquals(BookingMapper.toBookingDto(booking), bookingService.findById(1L, 1L));
         verify(entityUtils, times(1)).getBookingIfExists(anyLong());
     }
-/*
+
     @Test
     void findByBookerAndState() {
         var item = Item.builder()
@@ -299,21 +300,21 @@ class BookingServiceTest {
                 .build();
         var booking1 = Booking.builder()
                 .booker(User.builder().id(1L).build())
-                .status(BookingStatus.WAITING)
+                .status(BookingStatus.APPROVED)
                 .item(item)
                 .start(LocalDateTime.of(2020, 1, 1, 1, 1))
                 .end(LocalDateTime.of(2020, 1, 2, 1, 1))
                 .build();
         var booking2 = Booking.builder()
                 .booker(User.builder().id(1L).build())
-                .status(BookingStatus.WAITING)
+                .status(BookingStatus.APPROVED)
                 .item(item)
                 .start(LocalDateTime.of(2021, 1, 1, 1, 1))
                 .end(LocalDateTime.of(2021, 1, 2, 1, 1))
                 .build();
         var booking3 = Booking.builder()
                 .booker(User.builder().id(1L).build())
-                .status(BookingStatus.WAITING)
+                .status(BookingStatus.APPROVED)
                 .item(item)
                 .start(LocalDateTime.of(2024, 1, 1, 1, 1))
                 .end(LocalDateTime.of(2024, 1, 2, 1, 1))
@@ -321,9 +322,9 @@ class BookingServiceTest {
 
         when(bookingRepository.findAllByItemOwnerId(anyLong())).thenReturn(List.of(booking1, booking3, booking2));
         var expected = List.of(BookingMapper.toBookingDto(booking2), BookingMapper.toBookingDto(booking1)).toArray();
-        var actual = bookingService.findByOwnerAndState(1L, "WAITING", 0, 100).toArray();
+        var actual = bookingService.findByOwnerAndState(1L, "PAST", 0, 100).toArray();
         assertArrayEquals(expected, actual);
         verify(entityUtils, times(1)).getUserIfExists(anyLong());
         verify(bookingRepository, times(1)).findAllByItemOwnerId(anyLong());
-    }*/
+    }
 }

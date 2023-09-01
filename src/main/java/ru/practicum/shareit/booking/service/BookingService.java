@@ -2,14 +2,11 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
@@ -85,43 +82,31 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public List<BookingDto> findByBookerAndState(long userId, String state, int from, int size) {
-        if (from < 0 || size <= 0) {
-            throw new BadRequestException("Указаны неверные параметры пагинации");
-        }
         entityUtils.getUserIfExists(userId);
-        int totalElements = bookingRepository.findAllByBookerId(userId).size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
+        return pagination(from, size, findAllByState(bookingRepository.findAllByBookerId(userId), state));
+    }
 
-        if (from >= totalPages) {
-            from = totalPages - 1;
-        }
+    @Transactional(readOnly = true)
+    public List<BookingDto> findByOwnerAndState(long userId, String state, int from, int size) {
+        entityUtils.getUserIfExists(userId);
+        return pagination(from, size, findAllByState(bookingRepository.findAllByItemOwnerId(userId), state));
+    }
 
-        PageRequest pageRequest = PageRequest.of(from, size, Sort.by("start").descending());
-        return bookingRepository.findAllByBookerId(userId, pageRequest).stream()
-                .filter(stateBy(BookingState.parseState(state)))
+    private List<BookingDto> findAllByState(List<Booking> bookings, String state) {
+        return bookings.stream()
+                .filter(stateBy(EntityUtils.parseState(state)))
                 .sorted(Comparator.comparing(Booking::getStart).reversed())
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public List<BookingDto> findByOwnerAndState(long userId, String state, int from, int size) {
+    private List<BookingDto> pagination(int from, int size, List<BookingDto> list) {
         if (from < 0 || size <= 0) {
-            throw new BadRequestException("Указаны неверные параметры пагинации");
+            throw new BadRequestException("Bad params from or size for request");
         }
-        entityUtils.getUserIfExists(userId);
-        int totalElements = bookingRepository.findAllByItemOwnerId(userId).size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-
-        if (from >= totalPages) {
-            from = totalPages - 1;
-        }
-
-        PageRequest pageRequest = PageRequest.of(from, size, Sort.by("start").descending());
-        return bookingRepository.findAllByItemOwnerId(userId, pageRequest).stream()
-                .filter(stateBy(BookingState.parseState(state)))
-                .sorted(Comparator.comparing(Booking::getStart).reversed())
-                .map(BookingMapper::toBookingDto)
+        return list.stream()
+                .skip(from)
+                .limit(size)
                 .collect(Collectors.toList());
     }
 }
