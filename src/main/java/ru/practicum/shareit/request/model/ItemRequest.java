@@ -1,6 +1,5 @@
 package ru.practicum.shareit.request.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
@@ -24,15 +23,13 @@ public class ItemRequest {
     @Id
     private Long id;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, length = 255)
     private String description;
 
     @JoinColumn(name = "requester_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @NotNull
     @ManyToOne
-    @JsonIgnore
-    @NotNull
     private User requester;
 
     @CreationTimestamp

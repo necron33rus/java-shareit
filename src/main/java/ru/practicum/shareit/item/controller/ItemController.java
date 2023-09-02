@@ -15,9 +15,9 @@ import java.util.List;
 @RequestMapping("/items")
 @Slf4j
 public class ItemController {
-
-    private final ItemService itemService;
     private static final String CUSTOM_USER_ID_HEADER = "X-Sharer-User-Id";
+    private final ItemService itemService;
+
 
     @PostMapping
     public ItemDto create(@RequestBody @Valid ItemDto itemDto, @RequestHeader(CUSTOM_USER_ID_HEADER) long userId) {

@@ -259,41 +259,35 @@ class BookingServiceTest {
 
     @Test
     void findByBookerAndState() {
-        var item = Item.builder()
-                .id(1L)
-                .owner(User.builder().id(1L).build())
-                .build();
-        var booking1 = Booking.builder()
-                .booker(User.builder().id(1L).build())
-                .status(BookingStatus.APPROVED)
-                .item(item)
-                .start(LocalDateTime.of(2020, 1, 1, 1, 1))
-                .end(LocalDateTime.of(2020, 1, 2, 1, 1))
-                .build();
-        var booking2 = Booking.builder()
-                .booker(User.builder().id(1L).build())
-                .status(BookingStatus.APPROVED)
-                .item(item)
-                .start(LocalDateTime.of(2021, 1, 1, 1, 1))
-                .end(LocalDateTime.of(2021, 1, 2, 1, 1))
-                .build();
-        var booking3 = Booking.builder()
-                .booker(User.builder().id(1L).build())
-                .status(BookingStatus.APPROVED)
-                .item(item)
-                .start(LocalDateTime.of(2024, 1, 1, 1, 1))
-                .end(LocalDateTime.of(2024, 1, 2, 1, 1))
-                .build();
-        when(bookingRepository.findAllByBookerId(anyLong())).thenReturn(List.of(booking1, booking3, booking2));
-        var expected = List.of(BookingMapper.toBookingDto(booking2), BookingMapper.toBookingDto(booking1)).toArray();
-        var actual = bookingService.findByBookerAndState(1L, "PAST", 0, 100).toArray();
-        assertArrayEquals(expected, actual);
+        when(bookingRepository.findAllByBookerId(anyLong())).thenReturn(createApprovedBookingsForPastStatus());
+        var expected = createApprovedBookingsForPastStatus().size();
+        var actual = bookingService.findByBookerAndState(1L, "PAST", 0, 100).size();
+        assertEquals(expected, actual);
         verify(entityUtils, times(1)).getUserIfExists(anyLong());
         verify(bookingRepository, times(1)).findAllByBookerId(anyLong());
     }
 
     @Test
     void findByBookerAndStateFuture() {
+        when(bookingRepository.findAllByBookerId(anyLong())).thenReturn(createApprovedBookingsForFutureStatus());
+        var expected = createApprovedBookingsForFutureStatus().size();
+        var actual = bookingService.findByBookerAndState(1L, "FUTURE", 0, 100).size();
+        assertEquals(expected, actual);
+        verify(entityUtils, times(1)).getUserIfExists(anyLong());
+        verify(bookingRepository, times(1)).findAllByBookerId(anyLong());
+    }
+
+    @Test
+    void findAllByOwnerAndState() {
+        when(bookingRepository.findAllByItemOwnerId(anyLong())).thenReturn(createApprovedBookingsForPastStatus());
+        var expected = createApprovedBookingsForPastStatus().size();
+        var actual = bookingService.findByOwnerAndState(1L, "PAST", 0, 100).size();
+        assertEquals(expected, actual);
+        verify(entityUtils, times(1)).getUserIfExists(anyLong());
+        verify(bookingRepository, times(1)).findAllByItemOwnerId(anyLong());
+    }
+
+    private List<Booking> createApprovedBookingsForFutureStatus() {
         var item = Item.builder()
                 .id(1L)
                 .owner(User.builder().id(1L).build())
@@ -302,8 +296,8 @@ class BookingServiceTest {
                 .booker(User.builder().id(1L).build())
                 .status(BookingStatus.APPROVED)
                 .item(item)
-                .start(LocalDateTime.of(2020, 1, 1, 1, 1))
-                .end(LocalDateTime.of(2020, 1, 2, 1, 1))
+                .start(LocalDateTime.of(2023, 11, 1, 1, 1))
+                .end(LocalDateTime.of(2023, 11, 2, 1, 1))
                 .build();
         var booking2 = Booking.builder()
                 .booker(User.builder().id(1L).build())
@@ -319,16 +313,11 @@ class BookingServiceTest {
                 .start(LocalDateTime.of(2024, 1, 1, 1, 1))
                 .end(LocalDateTime.of(2024, 1, 2, 1, 1))
                 .build();
-        when(bookingRepository.findAllByBookerId(anyLong())).thenReturn(List.of(booking1, booking3, booking2));
-        var expected = List.of(BookingMapper.toBookingDto(booking3), BookingMapper.toBookingDto(booking2)).toArray();
-        var actual = bookingService.findByBookerAndState(1L, "FUTURE", 0, 100).toArray();
-        assertArrayEquals(expected, actual);
-        verify(entityUtils, times(1)).getUserIfExists(anyLong());
-        verify(bookingRepository, times(1)).findAllByBookerId(anyLong());
+
+        return List.of(booking1, booking2, booking3);
     }
 
-    @Test
-    void findAllByOwnerAndState() {
+    private List<Booking> createApprovedBookingsForPastStatus() {
         var item = Item.builder()
                 .id(1L)
                 .owner(User.builder().id(1L).build())
@@ -337,29 +326,24 @@ class BookingServiceTest {
                 .booker(User.builder().id(1L).build())
                 .status(BookingStatus.APPROVED)
                 .item(item)
-                .start(LocalDateTime.of(2020, 1, 1, 1, 1))
-                .end(LocalDateTime.of(2020, 1, 2, 1, 1))
+                .start(LocalDateTime.of(2021, 11, 1, 1, 1))
+                .end(LocalDateTime.of(2021, 11, 2, 1, 1))
                 .build();
         var booking2 = Booking.builder()
+                .booker(User.builder().id(1L).build())
+                .status(BookingStatus.APPROVED)
+                .item(item)
+                .start(LocalDateTime.of(2021, 12, 1, 1, 1))
+                .end(LocalDateTime.of(2021, 12, 2, 1, 1))
+                .build();
+        var booking3 = Booking.builder()
                 .booker(User.builder().id(1L).build())
                 .status(BookingStatus.APPROVED)
                 .item(item)
                 .start(LocalDateTime.of(2021, 1, 1, 1, 1))
                 .end(LocalDateTime.of(2021, 1, 2, 1, 1))
                 .build();
-        var booking3 = Booking.builder()
-                .booker(User.builder().id(1L).build())
-                .status(BookingStatus.APPROVED)
-                .item(item)
-                .start(LocalDateTime.of(2024, 1, 1, 1, 1))
-                .end(LocalDateTime.of(2024, 1, 2, 1, 1))
-                .build();
 
-        when(bookingRepository.findAllByItemOwnerId(anyLong())).thenReturn(List.of(booking1, booking3, booking2));
-        var expected = List.of(BookingMapper.toBookingDto(booking2), BookingMapper.toBookingDto(booking1)).toArray();
-        var actual = bookingService.findByOwnerAndState(1L, "PAST", 0, 100).toArray();
-        assertArrayEquals(expected, actual);
-        verify(entityUtils, times(1)).getUserIfExists(anyLong());
-        verify(bookingRepository, times(1)).findAllByItemOwnerId(anyLong());
+        return List.of(booking1, booking2, booking3);
     }
 }

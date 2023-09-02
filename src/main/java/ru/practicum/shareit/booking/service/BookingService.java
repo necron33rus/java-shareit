@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.BadRequestException;
@@ -83,26 +84,26 @@ public class BookingService {
     @Transactional(readOnly = true)
     public List<BookingDto> findByBookerAndState(long userId, String state, int from, int size) {
         entityUtils.getUserIfExists(userId);
-        return pagination(from, size, findAllByState(bookingRepository.findAllByBookerId(userId), state));
+        return dataFiltrationByPageAndSize(from, size, findAllByState(bookingRepository.findAllByBookerId(userId), state));
     }
 
     @Transactional(readOnly = true)
     public List<BookingDto> findByOwnerAndState(long userId, String state, int from, int size) {
         entityUtils.getUserIfExists(userId);
-        return pagination(from, size, findAllByState(bookingRepository.findAllByItemOwnerId(userId), state));
+        return dataFiltrationByPageAndSize(from, size, findAllByState(bookingRepository.findAllByItemOwnerId(userId), state));
     }
 
     private List<BookingDto> findAllByState(List<Booking> bookings, String state) {
         return bookings.stream()
-                .filter(stateBy(EntityUtils.parseState(state)))
+                .filter(stateBy(BookingState.parseState(state)))
                 .sorted(Comparator.comparing(Booking::getStart).reversed())
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toList());
     }
 
-    private List<BookingDto> pagination(int from, int size, List<BookingDto> list) {
+    private List<BookingDto> dataFiltrationByPageAndSize(int from, int size, List<BookingDto> list) {
         if (from < 0 || size <= 0) {
-            throw new BadRequestException("Bad params from or size for request");
+            throw new BadRequestException("]указаны неверные параметры пагинации");
         }
         return list.stream()
                 .skip(from)

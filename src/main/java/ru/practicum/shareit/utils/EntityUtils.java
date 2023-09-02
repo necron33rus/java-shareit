@@ -19,7 +19,6 @@ import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -68,16 +67,5 @@ public class EntityUtils {
         return STATE_FILTER.getOrDefault(state, b -> {
             throw new BadRequestException("Unknown state: " + state);
         });
-    }
-
-    public static BookingState parseState(String state) {
-        if (state == null || state.isBlank()) {
-            return BookingState.ALL;
-        }
-        if (Stream.of(BookingState.values()).anyMatch(s -> s.name().equals(state))) {
-            return BookingState.valueOf(state);
-        } else {
-            throw new BadRequestException("Unknown state: " + state);
-        }
     }
 }

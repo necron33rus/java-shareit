@@ -118,13 +118,13 @@ class EntityUtilsTest {
 
     @Test
     void parseCorrectState() {
-        assertEquals(BookingState.ALL, EntityUtils.parseState(null));
+        assertEquals(BookingState.ALL, BookingState.parseState(null));
     }
 
     @Test
     void parseIncorrectState() {
         String newState = "New";
-        var exception = assertThrows(BadRequestException.class, () -> EntityUtils.parseState(newState));
+        var exception = assertThrows(BadRequestException.class, () -> BookingState.parseState(newState));
         assertEquals("Unknown state: New", exception.getMessage());
     }
 }
