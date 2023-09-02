@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.proxy.HibernateProxy;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
@@ -44,6 +45,12 @@ public class Item {
     @JsonIgnore
     @ToString.Exclude
     private User owner;
+
+    @OneToOne
+    @JoinColumn(name = "request_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @ToString.Exclude
+    private ItemRequest request;
 
     @Override
     public final boolean equals(Object o) {

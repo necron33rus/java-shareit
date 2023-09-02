@@ -17,6 +17,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.booking.model.Booking;
 import org.apache.commons.lang3.StringUtils;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.utils.EntityUtils;
 
 import java.time.LocalDateTime;
@@ -32,15 +33,18 @@ public class ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final EntityUtils entityUtils;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Transactional
     public ItemDto create(ItemDto itemDto, long userId) {
-        return ItemMapper.toItemDto(itemRepository.save(
-                ItemMapper.toItem(
-                        itemDto,
-                        entityUtils.getUserIfExists(userId)
-                )
-        ));
+        var user = entityUtils.getUserIfExists(userId);
+        if (itemDto.getRequestId() != null) {
+            var request = itemRequestRepository.findById(itemDto.getRequestId()).orElseThrow();
+            var item = ItemMapper.toItem(itemDto, user);
+            item.setRequest(request);
+            return ItemMapper.toItemDto(itemRepository.save(item));
+        }
+        return ItemMapper.toItemDto(itemRepository.save(ItemMapper.toItem(itemDto, entityUtils.getUserIfExists(userId))));
     }
 
     @Transactional

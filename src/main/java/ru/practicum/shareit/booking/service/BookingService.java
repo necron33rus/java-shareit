@@ -14,7 +14,6 @@ import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.utils.EntityUtils;
-
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -65,7 +64,7 @@ public class BookingService {
         if (item.getOwner().getId() == userId) {
             booking.setStatus(BooleanUtils.isTrue(isApproved) ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         } else {
-            throw new NotFoundException("Пользователь с ID = " + userId + " не является владельщем вещи с ID" + item.getId());
+            throw new NotFoundException("Пользователь с ID = " + userId + " не является владельцем вещи с ID" + item.getId());
         }
 
         return BookingMapper.toBookingDto(bookingRepository.save(booking));
@@ -83,22 +82,32 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public List<BookingDto> findByBookerAndState(long userId, String state) {
+    public List<BookingDto> findByBookerAndState(long userId, String state, int from, int size) {
         entityUtils.getUserIfExists(userId);
-        return bookingRepository.findAllByBookerId(userId).stream()
+        return dataFiltrationByPageAndSize(from, size, findAllByState(bookingRepository.findAllByBookerId(userId), state));
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookingDto> findByOwnerAndState(long userId, String state, int from, int size) {
+        entityUtils.getUserIfExists(userId);
+        return dataFiltrationByPageAndSize(from, size, findAllByState(bookingRepository.findAllByItemOwnerId(userId), state));
+    }
+
+    private List<BookingDto> findAllByState(List<Booking> bookings, String state) {
+        return bookings.stream()
                 .filter(stateBy(BookingState.parseState(state)))
                 .sorted(Comparator.comparing(Booking::getStart).reversed())
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
-    public List<BookingDto> findByOwnerAndState(long userId, String state) {
-        entityUtils.getUserIfExists(userId);
-        return bookingRepository.findAllByItemOwnerId(userId).stream()
-                .filter(stateBy(BookingState.parseState(state)))
-                .sorted(Comparator.comparing(Booking::getStart).reversed())
-                .map(BookingMapper::toBookingDto)
+    private List<BookingDto> dataFiltrationByPageAndSize(int from, int size, List<BookingDto> list) {
+        if (from < 0 || size <= 0) {
+            throw new BadRequestException("]указаны неверные параметры пагинации");
+        }
+        return list.stream()
+                .skip(from)
+                .limit(size)
                 .collect(Collectors.toList());
     }
 }
