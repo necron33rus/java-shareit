@@ -3,6 +3,7 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -10,7 +11,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.Valid;
 
-@RestController
+@Controller
 @RequestMapping("/items")
 @Slf4j
 @RequiredArgsConstructor
@@ -20,14 +21,12 @@ public class ItemController {
 
     private final ItemClient itemClient;
 
-    @ResponseBody
     @PostMapping
     public ResponseEntity<Object> create(@RequestBody @Valid ItemDto itemDto,
                                          @RequestHeader(CUSTOM_USER_ID_HEADER) long userId) {
         return itemClient.create(userId, itemDto);
     }
 
-    @ResponseBody
     @PatchMapping("/{itemId}")
     public ResponseEntity<Object> update(@RequestBody ItemDto itemDto,
                                          @PathVariable long itemId,
@@ -51,7 +50,6 @@ public class ItemController {
         return itemClient.findByText(text);
     }
 
-    @ResponseBody
     @PostMapping("/{itemId}/comment")
     public ResponseEntity<Object> addComment(@PathVariable Long itemId,
                                              @RequestHeader(CUSTOM_USER_ID_HEADER) Long userId,

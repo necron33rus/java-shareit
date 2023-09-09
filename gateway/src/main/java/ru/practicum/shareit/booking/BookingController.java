@@ -20,14 +20,12 @@ public class BookingController {
 
     private final BookingClient bookingClient;
 
-    @ResponseBody
     @PostMapping
     public ResponseEntity<Object> create(@RequestBody @Valid BookingDto bookingDto,
                                          @RequestHeader(CUSTOM_USER_ID_HEADER) long userId) {
         return bookingClient.create(bookingDto, userId);
     }
 
-    @ResponseBody
     @PatchMapping("/{bookingId}")
     public ResponseEntity<Object> updateStatus(@RequestHeader(CUSTOM_USER_ID_HEADER) long userId,
                                                @PathVariable long bookingId,
@@ -43,22 +41,17 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> findAllForBooker(@RequestHeader(CUSTOM_USER_ID_HEADER) long userId,
-                                                   @RequestParam(required = false, defaultValue = "ALL") String state,
+                                                   @RequestParam(defaultValue = "ALL") String state,
                                                    @RequestParam(value = "from", required = false, defaultValue = "0") int from,
                                                    @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
-/*        BookingState stateParam = BookingState.from(state)
-                .orElseThrow(() -> new BadRequestException("Unknown state: " + state));*/
         return bookingClient.findALlForBooker(userId, state, from, size);
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> findAllItemForOwner(@RequestHeader(CUSTOM_USER_ID_HEADER) long userId,
-                                                      @RequestParam(required = false, defaultValue = "ALL") String state,
+                                                      @RequestParam(defaultValue = "ALL") String state,
                                                       @RequestParam(value = "from", required = false, defaultValue = "0") int from,
                                                       @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
-/*        BookingState stateParam = BookingState.from(state)
-                .orElseThrow(() -> new BadRequestException("Unknown state: " + state));*/
-
         return bookingClient.findAllItemsForOwner(userId, state, from, size);
     }
 }

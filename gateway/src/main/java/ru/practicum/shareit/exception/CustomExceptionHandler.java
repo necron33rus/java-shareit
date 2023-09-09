@@ -14,7 +14,7 @@ public class CustomExceptionHandler {
     @ExceptionHandler({IllegalArgumentException.class,
             MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseError badRequestHandle(Exception exception) {
+    public ResponseError badRequestHandle(RuntimeException exception) {
         log.error(exception.getMessage());
         return new ResponseError(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
