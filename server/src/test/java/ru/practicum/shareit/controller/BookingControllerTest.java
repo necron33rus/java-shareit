@@ -14,8 +14,8 @@ import ru.practicum.shareit.booking.controller.BookingController;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -49,8 +49,8 @@ class BookingControllerTest {
 
         bookingDto = BookingDto.builder()
                 .id(1L)
-                .item(Item.builder().name("item").build())
-                .booker(User.builder().name("user").build())
+                .item(ItemDto.builder().name("item").build())
+                .booker(UserDto.builder().name("user").build())
                 .status(BookingStatus.APPROVED)
                 .build();
     }
