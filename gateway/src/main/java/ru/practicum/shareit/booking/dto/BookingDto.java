@@ -14,13 +14,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BookingDto {
 
-    private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
     private Long itemId;
     @FutureOrPresent
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
+    @JsonFormat(pattern = DATE_TIME_PATTERN)
     private LocalDateTime start;
     @Future
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
+    @JsonFormat(pattern = DATE_TIME_PATTERN)
     private LocalDateTime end;
 }

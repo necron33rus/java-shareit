@@ -14,12 +14,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ItemRequestDto {
-    private static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
     private Long id;
     @NotEmpty
     private String description;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_PATTERN)
+    @JsonFormat(pattern = DATE_TIME_PATTERN)
     private LocalDateTime created;
     private List<ItemDto> items;
 }
