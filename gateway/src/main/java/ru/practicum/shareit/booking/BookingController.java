@@ -42,16 +42,16 @@ public class BookingController {
     @GetMapping
     public ResponseEntity<Object> findAllForBooker(@RequestHeader(CUSTOM_USER_ID_HEADER) long userId,
                                                    @RequestParam(defaultValue = "ALL") String state,
-                                                   @RequestParam(value = "from", required = false, defaultValue = "0") int from,
-                                                   @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
+                                                   @RequestParam(value = "from", defaultValue = "0") int from,
+                                                   @RequestParam(value = "size", defaultValue = "10") int size) {
         return bookingClient.findALlForBooker(userId, state, from, size);
     }
 
     @GetMapping("/owner")
     public ResponseEntity<Object> findAllItemForOwner(@RequestHeader(CUSTOM_USER_ID_HEADER) long userId,
                                                       @RequestParam(defaultValue = "ALL") String state,
-                                                      @RequestParam(value = "from", required = false, defaultValue = "0") int from,
-                                                      @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
+                                                      @RequestParam(value = "from", defaultValue = "0") int from,
+                                                      @RequestParam(value = "size", defaultValue = "10") int size) {
         return bookingClient.findAllItemsForOwner(userId, state, from, size);
     }
 }

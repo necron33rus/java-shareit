@@ -39,8 +39,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public ResponseEntity<Object> findAllByParams(@RequestHeader(CUSTOM_USER_ID_HEADER) long userId,
-                                                  @RequestParam(value = "from", required = false, defaultValue = "0") int from,
-                                                  @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
+                                                  @RequestParam(value = "from", defaultValue = "0") int from,
+                                                  @RequestParam(value = "size", defaultValue = "10") int size) {
         return itemRequestClient.findAllByParams(userId, from, size);
     }
 }
